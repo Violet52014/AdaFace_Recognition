@@ -1,0 +1,251 @@
+/* 页面容器 */
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #BBDEFB 0%, #E1BEE7 100%);
+  padding-bottom: 40rpx;
+}
+
+/* 标题栏 */
+.title-bar {
+  background: transparent;
+  padding: 50rpx;
+  text-align: center;
+}
+
+.title-text {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+  text-shadow: 0 2rpx 4rpx rgba(255, 255, 255, 0.5);
+}
+
+/* 摄像头容器 */
+.camera-container {
+  position: relative;
+  width: 90%;
+  margin: 0 auto;
+  height: 650rpx;
+  background: #000;
+  overflow: hidden;
+  border-radius: 40rpx;
+  box-shadow: 0 20rpx 40rpx rgba(0, 0, 0, 0.2);
+}
+
+.camera {
+  width: 100%;
+  height: 100%;
+}
+
+.detected-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.detected-box {
+  position: absolute;
+  border: 4rpx solid #19be6b;
+  border-radius: 12rpx;
+  box-sizing: border-box;
+  box-shadow: 0 0 0 2rpx rgba(25, 190, 107, 0.2);
+}
+
+.detected-label {
+  position: absolute;
+  top: -48rpx;
+  left: 0;
+  max-width: 240rpx;
+  padding: 6rpx 12rpx;
+  border-radius: 8rpx;
+  background: rgba(25, 190, 107, 0.92);
+  color: #fff;
+  font-size: 22rpx;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 人脸框 */
+.face-frame {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 400rpx;
+  height: 400rpx;
+  border: 2rpx solid rgba(255, 255, 255, 0.5);
+  border-radius: 20rpx;
+}
+
+.frame-corner {
+  position: absolute;
+  width: 60rpx;
+  height: 60rpx;
+  border-color: #fff;
+  border-style: solid;
+  border-width: 0;
+}
+
+.top-left {
+  top: -2rpx;
+  left: -2rpx;
+  border-top-width: 6rpx;
+  border-left-width: 6rpx;
+}
+
+.top-right {
+  top: -2rpx;
+  right: -2rpx;
+  border-top-width: 6rpx;
+  border-right-width: 6rpx;
+}
+
+.bottom-left {
+  bottom: -2rpx;
+  left: -2rpx;
+  border-bottom-width: 6rpx;
+  border-left-width: 6rpx;
+}
+
+.bottom-right {
+  bottom: -2rpx;
+  right: -2rpx;
+  border-bottom-width: 6rpx;
+  border-right-width: 6rpx;
+}
+
+.camera-tip {
+  position: absolute;
+  bottom: 40rpx;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #fff;
+  font-size: 26rpx;
+  text-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.5);
+}
+
+/* 识别按钮区域 */
+.action-area {
+  padding: 40rpx;
+  display: flex;
+  justify-content: center;
+}
+
+.capture-btn {
+  width: 280rpx;
+  height: 280rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.8) 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  border: 4rpx solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 20rpx 40rpx rgba(0, 0, 0, 0.15);
+}
+
+.capture-btn::after {
+  border: none;
+}
+
+.capture-btn.disabled {
+  opacity: 0.6;
+}
+
+.btn-icon {
+  width: 80rpx;
+  height: 80rpx;
+  margin-bottom: 10rpx;
+}
+
+.capture-btn text {
+  color: #333;
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+/* 识别结果区域 */
+.result-area {
+  padding: 0 40rpx 40rpx;
+}
+
+.result-card {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20rpx;
+  padding: 30rpx;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 10rpx 20rpx rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.result-card.success {
+  border-left: 8rpx solid #19be6b;
+}
+
+.result-card.error {
+  border-left: 8rpx solid #ed3f14;
+}
+
+.result-icon {
+  width: 80rpx;
+  height: 80rpx;
+  margin-right: 30rpx;
+}
+
+.result-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.result-name {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.result-time {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 8rpx;
+}
+
+.result-message {
+  font-size: 28rpx;
+  color: #666;
+}
+
+/* 今日统计卡片 */
+.stats-card {
+  margin: 0 40rpx;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 20rpx;
+  padding: 30rpx;
+  display: flex;
+  justify-content: space-around;
+  box-shadow: 0 10rpx 20rpx rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-value {
+  display: block;
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #2d8cf0;
+  margin-bottom: 10rpx;
+}
+
+.stat-label {
+  font-size: 26rpx;
+  color: #666;
+}

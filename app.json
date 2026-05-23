@@ -1,0 +1,41 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/logs/logs"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#BBDEFB",
+    "navigationBarTitleText": "人脸识别门禁系统",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "color": "#999",
+    "selectedColor": "#2d8cf0",
+    "backgroundColor": "#fff",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "识别",
+        "iconPath": "images/face.png",
+        "selectedIconPath": "images/face.png"
+      },
+      {
+        "pagePath": "pages/logs/logs",
+        "text": "记录",
+        "iconPath": "images/log.png",
+        "selectedIconPath": "images/log.png"
+      }
+    ]
+  },
+  "permission": {
+    "scope.camera": {
+      "desc": "需要使用摄像头进行人脸识别"
+    }
+  },
+  "requiredPrivateInfos": [
+    "getLocation"
+  ],
+  "usingComponents": {},
+  "sitemapLocation": "sitemap.json"
+}

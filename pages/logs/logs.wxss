@@ -1,0 +1,197 @@
+/* 页面容器 */
+.container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #BBDEFB 0%, #E1BEE7 100%);
+}
+
+/* 标题栏 */
+.title-bar {
+  background: transparent;
+  padding: 40rpx 30rpx 20rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.title-text {
+  font-size: 44rpx;
+  font-weight: bold;
+  color: #333;
+  text-shadow: 0 2rpx 4rpx rgba(255, 255, 255, 0.5);
+}
+
+/* 统计卡片 */
+.stats-summary {
+  background: rgba(255, 255, 255, 0.9);
+  margin: 20rpx 30rpx;
+  padding: 30rpx;
+  border-radius: 20rpx;
+  display: flex;
+  justify-content: space-around;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-value {
+  display: block;
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #2d8cf0;
+  margin-bottom: 10rpx;
+}
+
+.stat-label {
+  font-size: 26rpx;
+  color: #666;
+}
+
+/* 清空记录按钮容器 */
+.clear-button-wrapper {
+  padding: 0 30rpx 20rpx;
+  display: flex;
+  justify-content: center;
+}
+
+.clear-btn {
+  background: rgba(255, 255, 255, 0.95);
+  color: #ed3f14;
+  font-size: 28rpx;
+  padding: 20rpx 40rpx;
+  height: auto;
+  line-height: 1.4;
+  border-radius: 0; 
+  border: none;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+  width: auto;
+  min-width: 200rpx;
+  font-weight: 500;
+}
+
+.clear-btn::after {
+  border: none;
+}
+
+/* 记录列表 */
+.logs-list {
+  height: calc(100vh - 480rpx);
+  padding: 0 0 20rpx;
+}
+
+/* 列表项 */
+.list-item {
+  background: rgba(255, 255, 255, 0.95);
+  margin: 0 30rpx 20rpx;
+  padding: 30rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
+  transition: all 0.3s;
+  backdrop-filter: blur(5px);
+}
+
+.list-item:active {
+  transform: scale(0.98);
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.item-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 40rpx;
+  margin-right: 20rpx;
+  background: rgba(240, 240, 240, 0.8);
+}
+
+.item-info {
+  flex: 1;
+}
+
+.info-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+}
+
+.info-name {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333;
+}
+
+.info-status {
+  font-size: 24rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+}
+
+.info-status.success {
+  background: rgba(25, 190, 107, 0.15);
+  color: #19be6b;
+}
+
+.info-status.error {
+  background: rgba(237, 63, 20, 0.15);
+  color: #ed3f14;
+}
+
+.info-class {
+  display: block;
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 6rpx;
+}
+
+.info-time {
+  display: block;
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 6rpx;
+}
+
+.info-desc {
+  display: block;
+  font-size: 26rpx;
+  color: #666;
+}
+
+/* 加载状态 */
+.loading-more,
+.no-more {
+  text-align: center;
+  padding: 30rpx;
+  color: rgba(51, 51, 51, 0.7);
+  font-size: 26rpx;
+}
+
+/* 空状态 */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+}
+
+.empty-icon {
+  width: 200rpx;
+  height: 200rpx;
+  margin-bottom: 40rpx;
+  opacity: 0.6;
+}
+
+.empty-text {
+  color: rgba(51, 51, 51, 0.7);
+  font-size: 28rpx;
+  margin-bottom: 10rpx;
+}
+
+.empty-tip {
+  color: rgba(51, 51, 51, 0.5);
+  font-size: 24rpx;
+}

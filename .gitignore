@@ -1,0 +1,27 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# AdaFace / 训练产物（体积大）
+backend/models/*.pth
+backend/models/*.ckpt
+backend/models/*.pt
+backend/AdaFace/experiments/
+backend/AdaFace/pretrained/
+
+# 本地数据库（含识别记录）
+backend/instance/
+*.db
+
+# 系统与 IDE
+.DS_Store
+Thumbs.db
+.idea/
+
+# 可选：若不想把 VS Code 个人配置上传，取消下一行注释
+# .vscode/
+
+node_modules/

@@ -1,0 +1,25 @@
+# AdaFace 官方仓库依赖（已修正：pip 包名为 torch，不是 pytorch）
+# 训练主流程：main.py / train_val.py / data.py / net.py
+# 推理：inference.py + face_alignment（需 PIL + torch）
+#
+# 若需 GPU，请按 https://pytorch.org/get-started/locally/ 选择对应 CUDA 的 torch/torchvision 版本，
+# 再安装本文件其余依赖（或先装 torch/torchvision，再 pip install -r requirements.txt --no-deps 仅装其余包）。
+
+pytorch-lightning==1.8.6
+torch<=1.13.1
+torchvision<=0.14.1
+numpy
+pandas
+Pillow
+tqdm
+bcolz-zipline
+prettytable
+menpo
+mxnet
+opencv-python
+
+# ---- 以下为验证脚本（validation_*）常用，主训练可不装 ----
+matplotlib
+scikit-learn
+scikit-image
+scipy

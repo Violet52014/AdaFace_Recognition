@@ -1,0 +1,77 @@
+<view class="container">
+  <!-- 标题栏 -->
+  <view class="title-bar">
+    <text class="title-text">人脸识别门禁系统</text>
+  </view>
+  
+  <!-- 摄像头区域 -->
+  <view class="camera-container">
+    <camera 
+      class="camera"
+      device-position="front"
+      flash="off"
+      bindstop="onCameraStop"
+      binderror="onCameraError"
+    ></camera>
+
+    <view class="detected-layer">
+      <view
+        class="detected-box"
+        wx:for="{{faceBoxes}}"
+        wx:key="index"
+        style="left: {{item.left}}; top: {{item.top}}; width: {{item.width}}; height: {{item.height}};"
+      >
+        <text class="detected-label">{{item.label}}</text>
+      </view>
+    </view>
+    
+    <view class="face-frame" wx:if="{{showFaceFrame}}">
+      <view class="frame-corner top-left"></view>
+      <view class="frame-corner top-right"></view>
+      <view class="frame-corner bottom-left"></view>
+      <view class="frame-corner bottom-right"></view>
+    </view>
+    
+    <view class="camera-tip">{{cameraTip}}</view>
+  </view>
+  
+  <!-- 识别按钮区域 -->
+  <view class="action-area">
+    <button 
+      class="capture-btn {{!cameraReady ? 'disabled' : ''}}" 
+      bindtap="toggleAutoRecognize"
+      disabled="{{!cameraReady}}"
+    >
+      <image class="btn-icon" src="/images/camera.png" mode="aspectFit"></image>
+      <text>{{autoRecognizing ? (recognizing ? '识别中...' : '停止识别') : '开始识别'}}</text>
+    </button>
+  </view>
+  
+  <!-- 识别结果区域 -->
+  <view class="result-area" wx:if="{{showResult}}">
+    <view class="result-card {{result.type === 'success' ? 'success' : 'error'}}">
+      <image class="result-icon" src="/images/{{result.type === 'success' ? 'success' : 'error'}}.png"></image>
+      <view class="result-content">
+        <text class="result-name">{{result.name}}</text>
+        <text class="result-time">{{result.time}}</text>
+        <text class="result-message">{{result.message}}</text>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 今日统计卡片 -->
+  <view class="stats-card">
+    <view class="stat-item">
+      <text class="stat-value">{{stats.total}}</text>
+      <text class="stat-label">今日识别</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-value">{{stats.success}}</text>
+      <text class="stat-label">识别成功</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-value">{{stats.rate}}%</text>
+      <text class="stat-label">成功率</text>
+    </view>
+  </view>
+</view>

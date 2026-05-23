@@ -1,0 +1,3 @@
+由于模型参数过大，下面给出本项目使用的预训练参数链接
+
+https://drive.google.com/file/d/1eUaSHG4pGlIZK7hBkqjyp2fc2epKoBvI/view?usp=sharing
