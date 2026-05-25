@@ -32,18 +32,24 @@ dev = [
 [tool.uv]
 package = false
 
-# 只推理不训练，35 人 × IR-50 单图 ~100ms，CPU 完全够；
-# 全平台统一 CPU wheel，避免 Win 拿到 PyPI 上"伪装版"、Linux 拖 ~2GB CUDA、
-# 以及不同同学的 NVIDIA 驱动 / CUDA 版本对不上的麻烦。
+# torch 平台路由：
+# - Windows  → CUDA 12.8 wheel（NVIDIA 显卡 + 驱动 ≥ 525.60，主流卡都覆盖）
+# - Linux    → CPU wheel（避免拖 ~2GB CUDA 运行时；本项目只推理）
+# - macOS    → 不进任何 PyTorch index，fallback PyPI 拿 arm64 + MPS 原生 wheel
 [[tool.uv.index]]
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
 [tool.uv.sources]
 torch = [
-    # macOS 不进官方 cpu index（那里没 arm64 wheel），fallback PyPI 拿原生 mac wheel
-    { index = "pytorch-cpu", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+    { index = "pytorch-cu128", marker = "sys_platform == 'win32'" },
+    { index = "pytorch-cpu",   marker = "sys_platform == 'linux'" },
 ]
 
 [tool.pytest.ini_options]
