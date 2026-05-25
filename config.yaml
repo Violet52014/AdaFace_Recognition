@@ -1,0 +1,12 @@
+recognition:
+  match_threshold: 0.35
+  production_strategy: mean_all
+
+evaluation:
+  random_seed: 42
+  train_ratio: 0.8
+  min_vectors_per_person: 5
+  lfw_cache_dir: backend/dataset/lfw
+  lfw_impostor_count: 1000
+  far_targets: [1.0e-3]
+  output_dir: reports

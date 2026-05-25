@@ -16,6 +16,11 @@ backend/AdaFace/pretrained/
 backend/instance/
 *.db
 
+# 本地数据集（私照 / LFW 缓存等，体积大且不入仓）
+backend/dataset/*
+!backend/dataset/*.txt
+!backend/dataset/.gitkeep
+
 # 系统与 IDE
 .DS_Store
 Thumbs.db
@@ -25,3 +30,17 @@ Thumbs.db
 # .vscode/
 
 node_modules/
+
+# Claude Code 工作目录（agent state）
+.claude/
+
+# 评估输出 / 日志（仅入仓占位）
+reports/*
+!reports/.gitkeep
+logs/
+
+# 本地配置覆盖
+*.local.yaml
+
+# 演示视频
+*.mp4

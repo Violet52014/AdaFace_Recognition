@@ -1,11 +1,12 @@
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional, Tuple
 
 import cv2
 import numpy as np
 
 from ..config import Config
-from ..models import FaceProfile
+from ..models import FaceProfile, Template, parse_template_vectors
 from .adaface_infer import extract_embedding_from_bgr, is_adaface_available, parse_stored_embedding
 from .image_utils import decode_base64_image, decode_image_bytes
 
@@ -93,8 +94,15 @@ def recognize_face_from_bgr(image_bgr: np.ndarray) -> FaceRecognitionResult:
                 bbox=bbox,
             )
 
-        threshold = Config.ADAFACE_MATCH_THRESHOLD
-        best_p, score = _match_with_gallery(emb, with_vectors)
+        from ..config_loader import AppConfig
+        # 配置文件路径相对仓库根；run.py 启动时 cwd=backend，因此 ../config.yaml
+        cfg = AppConfig.load(Path(__file__).resolve().parents[3] / "config.yaml")
+        threshold = cfg.recognition.match_threshold
+        best_p, score = match_with_templates(
+            emb,
+            profiles,  # 含全部 profile，由 match_with_templates 内部过滤
+            strategy=cfg.recognition.production_strategy,
+        )
 
         if best_p is None or score < threshold:
             return FaceRecognitionResult(
@@ -140,3 +148,33 @@ def recognize_face_from_bgr(image_bgr: np.ndarray) -> FaceRecognitionResult:
         message=f"识别成功，欢迎 {person.name} (置信度 {score:.2f})",
         bbox=None,
     )
+
+
+def match_with_templates(
+    query: np.ndarray,
+    profiles: list,
+    strategy: str,
+) -> Tuple[Optional[FaceProfile], float]:
+    """对每个 profile 取该 strategy 的 Template，计算 max-cosine；返回最佳 profile + 分数。
+
+    无任何 profile 拥有该策略模板时返回 (None, -1.0)。
+    query 与模板均假定已 L2 归一化（点积 = 余弦）。
+    """
+    q = query / (np.linalg.norm(query) + 1e-8)
+    best_profile: Optional[FaceProfile] = None
+    best_score = -1.0
+    for p in profiles:
+        tpl = next((t for t in p.templates if t.strategy == strategy), None)
+        if tpl is None:
+            continue
+        mat = parse_template_vectors(tpl.vector_json)
+        if mat.shape[0] == 0:
+            continue
+        # 模板再保险 L2 一次
+        norms = np.linalg.norm(mat, axis=1, keepdims=True) + 1e-8
+        mat_l2 = mat / norms
+        score = float((mat_l2 @ q).max())
+        if score > best_score:
+            best_score = score
+            best_profile = p
+    return best_profile, best_score
