@@ -12,3 +12,8 @@ prettytable
 menpo
 mxnet
 opencv-python
+pytest
+pytest-cov
+pydantic-settings
+PyYAML
+scikit-learn
