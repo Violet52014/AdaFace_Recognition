@@ -60,7 +60,8 @@
 | D4 | 多模板匹配用 `max-cosine` | mean / sum / vote | 简单、可解释、答辩好讲；与 manual_three / kmeans_k3 / all_vectors 的语义直接对应 |
 | D5 | 评估协议：档案内 80/20 + LFW impostor，固定 seed=42 | LFW 6000-pair 协议 / 仅档案内 | 档案场景最贴合实际；LFW 提供"完全陆生人"impostor 提升 FAR=1e-3 的统计显著性 |
 | D6 | 5 策略仅离线评估，生产单选其一 | 在线投票 / 在线动态切换 | YAGNI；35 人规模演示价值低 |
-| D7 | `manual_three` 的"质量分"= MTCNN bbox prob | 手工标注 / 模糊度算子 | MTCNN 已有现成 prob，不引入新依赖 |
+| D7 | `manual_three` = 按姿态人工分 3 组（正面/左侧/右侧），每组取均值后 L2，得 3 个模板 | 取相似度/质量分最高的 3 张 | "人工"语义对得上；姿态是 AdaFace 实际易出错的维度，模板覆盖三姿态对鲁棒性可解释 |
+| D7a | 姿态标签来源：子目录名 `dataset/<人名>/{frontal,left,right}/*.jpg` | 文件名前缀 / MTCNN 关键点自动推断 / labels.csv | `ls` 直观；其他策略读取时遍历所有子孙图片即可（忽略组），无副作用 |
 | D8 | `kmeans_k3` 的 k 来自 config | 写死 3 | 答辩时讲超参可调更专业；写死等价于硬编码魔数 |
 | D9 | 上游 `feature_vector` 字段保留不删 | 删除 | CLAUDE.md §6 "不删既有列"，保兼容 |
 | D10 | `metrics.py` 全部纯 numpy 实现 | 调 sklearn.metrics | 数学层是项目核心声明，必须可被合成数据测出来 |
@@ -96,7 +97,7 @@ backend/
 │   ├── models.py                    [~] 新增 Template 表
 │   ├── services/
 │   │   ├── face_service.py          [~] _match_with_gallery → match_with_templates
-│   │   └── adaface_infer.py         [~] 新增 extract_embedding_with_quality；老函数 extract_embedding_from_bgr 完全不动
+│   │   └── adaface_infer.py         [-] 不动（manual_three 用姿态分组而非质量分，无需返回 prob）
 │   ├── routes/                      [-] 不动
 │   ├── extensions.py                [-] 不动
 │   └── config.py                    [-] 不动（上游环境变量风格保留）
@@ -181,6 +182,28 @@ class Template(db.Model):
 - 一次性 backfill 脚本 `scripts/migrate_to_templates.py`：扫现有 `face_profiles.feature_vector` → 写为 `strategy='mean_all'` 的 Template 行
 - 不引入 Alembic（YAGNI；本科期末项目）
 
+### 4.5 数据集组织约定
+
+```
+dataset/
+├── 张三/
+│   ├── frontal/        # 正面
+│   │   ├── img_01.jpg
+│   │   └── ...
+│   ├── left/           # 左侧
+│   └── right/          # 右侧
+├── 李四/
+│   └── ...
+└── lfw/                # LFW 缓存目录（lfw_loader 自动写入；外部 impostor）
+    └── ...
+```
+
+- **manual_three 必须使用此布局**才能产出 3 个姿态模板
+- **其他 4 个策略**对布局不敏感：`data_split` 递归发现所有图片，pose 字段对它们无影响
+- **兼容旧布局** `dataset/<人名>/*.jpg`（无姿态子目录）：4 个策略照常工作；manual_three 对该人跳过 + warning
+- 子目录名必须严格等于 `frontal` / `left` / `right`（与 `config.yaml strategies.manual_three.pose_groups` 对齐）
+- 子目录名变更需要同步改两处（spec + config），列在风险表 §11
+
 ---
 
 ## 5. 核心接口
@@ -196,14 +219,15 @@ class TemplateStrategy(Protocol):
 
     def build(self, vectors: np.ndarray, *,
               rng: np.random.Generator,
-              quality_scores: np.ndarray | None = None) -> np.ndarray:
+              group_labels: np.ndarray | None = None) -> np.ndarray:
         """
         参数:
           vectors: (N, 512) 已 L2 归一化的同一人原始特征
           rng: numpy 随机源（确定性）
-          quality_scores: (N,) 浮点，仅 manual_three 使用，其他策略忽略
+          group_labels: (N,) 字符串数组，仅 manual_three 使用，其他策略忽略。
+                        取值 ∈ {'frontal', 'left', 'right'}，与 vectors 同顺序对齐。
         返回:
-          (M, 512)，M ∈ {1, 3, N}，每行已 L2 归一化
+          (M, 512)，M ∈ {1, ≤3, N}，每行已 L2 归一化
         """
         ...
 ```
@@ -214,19 +238,30 @@ class TemplateStrategy(Protocol):
 |---|---|---|
 | `random_one` | 1 | `vectors[rng.integers(N)][None, :]`；输入已 L2，返回保持 |
 | `mean_all` | 1 | `mean(vectors, axis=0)` → L2 归一化（与上游 build_face_gallery L77-78 等价） |
-| `manual_three` | min(3, N) | 取 `quality_scores` 最高的前 K=3 行；返回各行（已 L2） |
+| `manual_three` | ≤ 3 | 按 `group_labels` 把 vectors 分到 frontal / left / right 三组，每组取 `mean(axis=0)` 后 L2 归一化，得每组 1 个模板。某组缺图则该组不出模板（M 自动小于 3）；全 3 组都缺则抛 `ValueError`（应在 evaluation 层提前过滤掉这种人，不应到这里）。 |
 | `kmeans_k3` | min(3, N) | `sklearn.cluster.KMeans(n_clusters=k, random_state=cfg.evaluation.random_seed).fit(vectors).cluster_centers_` → 各行 L2 归一化 |
 | `all_vectors` | N | 原样返回输入（已 L2） |
 
-K 值（`top_k`、`k`）由 `config.yaml` `strategies.*` 提供，默认值 3。
+`k`（kmeans）由 `config.yaml` `strategies.kmeans.k` 提供，默认 3。`manual_three` 的"3"由姿态枚举本身决定（frontal/left/right），无超参。
 
 ### 5.3 `evaluation/` 关键函数签名
 
 ```python
 # data_split.py
+@dataclass(frozen=True)
+class ImageEntry:
+    path: Path
+    pose: str | None        # 'frontal' / 'left' / 'right' / None（未分姿态）
+
 def split_by_person(dataset_root: Path, *, train_ratio: float, seed: int
-                    ) -> dict[str, tuple[list[Path], list[Path]]]:
-    """每人切 train/probe；同 seed → 同结果。每人至少 1 张时全部入 train，probe=空且记 warning。"""
+                    ) -> dict[str, tuple[list[ImageEntry], list[ImageEntry]]]:
+    """
+    数据集组织约定:
+      dataset_root/<人名>/                       # 旧布局，pose=None
+      dataset_root/<人名>/<pose>/<image>.jpg     # 新布局，pose ∈ {frontal, left, right}
+    两种布局可共存：递归发现所有图片，pose 取直接父目录名（若在枚举内则记录，否则 None）。
+    每人切 train/probe；同 seed → 同结果。每人 ≥1 张时若 N==1 全部入 train（probe 空 + warning）。
+    """
 
 # lfw_loader.py
 def load_lfw_impostors(cache_dir: Path, *, n_images: int, seed: int,
@@ -277,8 +312,9 @@ def match_with_templates(query_l2: np.ndarray,
 ### 6.1 离线评估 (`run_ablation`)
 
 ```
-dataset/35人          ←── data_split (80/20, seed=42)
-   ├─→ train: 抽特征(L2) → 5 策略 build() → 5 套 gallery_templates
+dataset/35人(含 pose 子目录)  ←── data_split (80/20, seed=42)
+   ├─→ train: 抽特征(L2) + 携带 pose → 5 策略 build() → 5 套 gallery_templates
+   │       其中 manual_three 用 pose 标签分 3 组取均值；其他策略忽略 pose
    └─→ probe: 抽特征(L2) → probe_features
 
 dataset/lfw  ──→ lfw_loader → 抽特征(L2) → lfw_features
@@ -294,6 +330,7 @@ dataset/lfw  ──→ lfw_loader → 抽特征(L2) → lfw_features
 ```
 
 **性能优化**：probe / LFW 特征**只抽一次**，5 策略复用同一份。
+**train 特征**也只抽一次，连同 pose 标签一起缓存，5 策略各自从同一缓存里聚合。
 
 ### 6.2 在线识别（M5 切线后）
 
@@ -330,8 +367,8 @@ evaluation:
 strategies:
   kmeans:
     k: 3
-  manual:
-    top_k: 3
+  manual_three:
+    pose_groups: [frontal, left, right]   # 必须与子目录名严格对齐
 ```
 
 `app/config_loader.py` 用 `pydantic-settings` 加载为 `AppConfig` 单例。
@@ -387,7 +424,7 @@ strategies:
 
 - `test_random_one`：shape=(1,512)；同 seed → 同行索引；范数 ≈ 1
 - `test_mean_all`：与 `np.mean+l2` 等价；与上游 `build_face_gallery` mean 行为一致（**回归测试**）
-- `test_manual_three`：行序与 quality_scores 排序一致；N<3 时 M=N；prob 全相等时取前 3 稳定
+- `test_manual_three`：3 组齐全 → M=3，每行 = 该组均值的 L2 归一化；某组缺失 → M=2 不抛错；全 3 组缺 → 抛 `ValueError`；同一组多张时输出与 `mean+l2` 等价（**回归测试**）
 - `test_kmeans_k3`：shape=(min(3,N),512)；同 seed 可复现；N=2 时退化 k=2
 - `test_all_vectors`：输出与输入相等；不修改输入数组
 
@@ -467,7 +504,7 @@ testpaths = tests
 |---|---|---|
 | **M1** | 地基 | `config.yaml` + `AppConfig` 加载工作；`Template` 表 `db.create_all` 出来；`tests/unit/test_config_loader.py` 全绿；测试脚手架（conftest, pytest.ini）就位 |
 | **M2** | 5 策略 | `app/strategies/` 5 个实现 + `STRATEGIES` 注册表；`tests/unit/strategies/*` 全绿（≈18 用例） |
-| **M3** | 评估纯函数 | `data_split` / `lfw_loader` / `pair_generator` / `metrics` 实现；`tests/unit/evaluation/*` 全绿（≈14 用例） |
+| **M3** | 评估纯函数 | `data_split` 支持新旧两种布局并解析 pose 标签；`lfw_loader` / `pair_generator` / `metrics` 实现；`tests/unit/evaluation/*` 全绿（≈14 用例，含 pose 解析用例） |
 | **M4** | run_ablation 跑通 | `runner.py` + `run_ablation.py` CLI；在真 35 人 + LFW 上跑出 `reports/<ts>/ablation.csv` + `roc.png`；集成 smoke 测试在 mini fixture 上绿 |
 | **M5** | 切线生产默认 | 选定赢家策略写入 `config.yaml`；`face_service` 切到 `match_with_templates`；`build_face_gallery.py` 写多 Template；`migrate_to_templates.py` 跑通；上游 4 个 HTTP 接口的人工冒烟验证（小程序 → /api/face/recognize 跑通） |
 
@@ -482,7 +519,8 @@ testpaths = tests
 | LFW 下载源不稳定 | `lfw_loader` 接受用户预先放置的 `cache_dir`；首次失败明确报错指引手动下载 |
 | 35 人 × 20% probe ≈ 140 个 genuine pair，FAR=1e-3 统计噪声大 | 加 LFW × 35 ≈ 35000 个 impostor，FAR 分母拉大；输出 CSV 标注 `n_pairs` 让答辩可查 |
 | sklearn KMeans 在 N=1 时崩溃 | `kmeans_k3` 内部判断 N<k 时退化为 `k=N`，N=1 时直接退化为 `mean_all` 的输出语义并 warning |
-| `extract_embedding_from_bgr` 改返回值会破坏上游调用方 | 不改既有元组形状，新增第 4 元素 `prob: float` 仅追加；旧调用方解包前 3 元素仍工作 → **本 spec 改为：质量分通过新增独立函数 `extract_embedding_with_quality` 暴露**，老函数完全不动（更安全） |
+| 数据集需要按姿态重组到 `<人名>/{frontal,left,right}/` | 写一份"数据集组织指南"在 spec 内（§4.5）；data_split 同时支持新旧两种布局，旧布局下 manual_three 整个策略对该人跳过并 warning（保证其余 4 策略不受影响） |
+| `manual_three` 三组中某组缺图（例如某人完全无侧脸） | M 自动 < 3，剩余组合成模板照常匹配；若全 3 组都缺则 evaluation 层直接剔除该人不计入 manual_three 的统计（其他 4 策略不受影响） |
 | 数据集私照不能 commit | `.gitignore` 已含 `dataset/`；新增 `reports/*` 也入 gitignore；CI fixtures 仅用 AdaFace 自带 sample |
 
 ---
