@@ -31,8 +31,8 @@ Thumbs.db
 
 node_modules/
 
-# 本地 AI 协作指令（不属于交付物）
-CLAUDE.md
+# Claude Code 工作目录（agent state）
+.claude/
 
 # 评估输出 / 日志（仅入仓占位）
 reports/*

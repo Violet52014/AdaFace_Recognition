@@ -10,9 +10,3 @@ evaluation:
   lfw_impostor_count: 1000
   far_targets: [1.0e-3]
   output_dir: reports
-
-strategies:
-  kmeans:
-    k: 3
-  manual_three:
-    pose_groups: [frontal, left, right]

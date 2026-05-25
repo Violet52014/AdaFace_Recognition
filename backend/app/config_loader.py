@@ -45,23 +45,9 @@ class _EvaluationCfg(BaseModel):
         return v
 
 
-class _KmeansCfg(BaseModel):
-    k: int = Field(ge=1)
-
-
-class _ManualThreeCfg(BaseModel):
-    pose_groups: List[str]
-
-
-class _StrategiesCfg(BaseModel):
-    kmeans: _KmeansCfg
-    manual_three: _ManualThreeCfg
-
-
 class AppConfig(BaseModel):
     recognition: _RecognitionCfg
     evaluation: _EvaluationCfg
-    strategies: _StrategiesCfg
 
     @classmethod
     def load(cls, path: Path | str) -> "AppConfig":

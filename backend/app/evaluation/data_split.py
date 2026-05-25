@@ -11,7 +11,6 @@ import numpy as np
 
 log = logging.getLogger(__name__)
 
-# 与 config.yaml strategies.manual_three.pose_groups 对齐
 POSE_NAMES = frozenset({"frontal", "left", "right"})
 
 # 评估时不可作为"人脸库人员"的特殊子目录名

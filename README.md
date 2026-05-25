@@ -84,8 +84,8 @@ curl http://127.0.0.1:5000/api/health
 
 ### 2. 模型权重
 
-AdaFace 预训练权重 `.pth` 体积大，**不入仓**。需自行下载放到 `backend/models/`。
-路径在 `config.yaml` 里指定。
+AdaFace 预训练权重 `.pth` 体积大，**不入仓**。需自行下载放到 `backend/models/`，启动时会自动选其中一个 `.ckpt/.pth/.pt`。
+也可通过环境变量 `ADAFACE_MODEL_PATH=/abs/path/to/weight.ckpt` 指定绝对路径覆盖。
 
 ### 3. 数据集
 
@@ -152,4 +152,4 @@ uv run pytest -m slow               # 仅集成测试（需权重 + 数据集）
 
 - 设计文档（spec）：`docs/superpowers/specs/`
 - 实施计划（plan）：`docs/superpowers/plans/`
-- AI 协作指令：`CLAUDE.md`（本地，不入仓）
+- AI 协作指令：`CLAUDE.md`（项目级指令，入仓共享）

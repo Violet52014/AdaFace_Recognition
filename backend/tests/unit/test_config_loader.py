@@ -19,11 +19,6 @@ evaluation:
   lfw_impostor_count: 1000
   far_targets: [1.0e-3]
   output_dir: reports
-strategies:
-  kmeans:
-    k: 3
-  manual_three:
-    pose_groups: [frontal, left, right]
 """
 
 
@@ -35,8 +30,6 @@ def test_loads_valid_yaml(tmp_path: Path):
     assert cfg.recognition.production_strategy == "mean_all"
     assert cfg.evaluation.random_seed == 42
     assert cfg.evaluation.far_targets == [1e-3]
-    assert cfg.strategies.kmeans.k == 3
-    assert cfg.strategies.manual_three.pose_groups == ["frontal", "left", "right"]
 
 
 def test_threshold_must_be_in_range(tmp_path: Path):
