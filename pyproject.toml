@@ -32,6 +32,20 @@ dev = [
 [tool.uv]
 package = false
 
+# 只推理不训练，35 人 × IR-50 单图 ~100ms，CPU 完全够；
+# 全平台统一 CPU wheel，避免 Win 拿到 PyPI 上"伪装版"、Linux 拖 ~2GB CUDA、
+# 以及不同同学的 NVIDIA 驱动 / CUDA 版本对不上的麻烦。
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [
+    # macOS 不进官方 cpu index（那里没 arm64 wheel），fallback PyPI 拿原生 mac wheel
+    { index = "pytorch-cpu", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
+
 [tool.pytest.ini_options]
 markers = [
     "slow: 集成测试，需要权重，分钟级",
