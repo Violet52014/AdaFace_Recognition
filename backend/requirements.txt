@@ -1,5 +1,5 @@
-# 本项目已迁移到 uv + pyproject.toml + uv.lock。
-# 推荐安装方式（在 backend/ 下）:
+# 本项目已迁移到 uv + pyproject.toml + uv.lock（位于仓库根目录）。
+# 推荐安装方式（从仓库根目录执行）:
 #   curl -LsSf https://astral.sh/uv/install.sh | sh   # 安装 uv
 #   uv sync                                           # 创建 .venv 并按 uv.lock 安装
 #
