@@ -94,6 +94,21 @@ def _evaluate_one_strategy(
         except Exception as exc:  # 单人策略失败，剔除该人但不阻断整体
             log.warning("策略 %s：人 %s build 失败: %s", strategy_name, name, exc)
 
+    if not gallery:
+        # 例：LFW 自建数据集无姿态标签时 manual_three 全员被剔除；标记为未参评而非崩
+        log.warning("策略 %s：gallery 为空，未参评", strategy_name)
+        return AblationRow(
+            strategy=strategy_name,
+            eer=float("nan"),
+            eer_threshold=float("nan"),
+            tar_at_far_1e_3=float("nan"),
+            auc=float("nan"),
+            n_pairs=0,
+            n_genuine=0,
+            n_impostor_internal=0,
+            n_impostor_lfw=0,
+        )
+
     pairs = make_pairs(probe_per_person, gallery, lfw_features)
     if not pairs:
         raise ValueError(f"策略 {strategy_name}：未生成任何 pair")
