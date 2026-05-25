@@ -1,17 +1,17 @@
+# 本项目已迁移到 uv + pyproject.toml + uv.lock。
+# 推荐安装方式（在 backend/ 下）:
+#   curl -LsSf https://astral.sh/uv/install.sh | sh   # 安装 uv
+#   uv sync                                           # 创建 .venv 并按 uv.lock 安装
+#
+# 仅当无法用 uv 时，本文件作为粗略 fallback；版本不锁，跨机一致性不保证。
 Flask
 Flask-SQLAlchemy
 Flask-Cors
 python-dotenv
 opencv-python
 Pillow
-pytorch-lightning==1.8.6
-torch<=1.13.1
+torch
 tqdm
-bcolz-zipline
-prettytable
-menpo
-mxnet
-opencv-python
 pytest
 pytest-cov
 pydantic-settings

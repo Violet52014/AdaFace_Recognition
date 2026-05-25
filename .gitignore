@@ -16,6 +16,11 @@ backend/AdaFace/pretrained/
 backend/instance/
 *.db
 
+# 本地数据集（私照 / LFW 缓存等，体积大且不入仓）
+backend/dataset/*
+!backend/dataset/*.txt
+!backend/dataset/.gitkeep
+
 # 系统与 IDE
 .DS_Store
 Thumbs.db
